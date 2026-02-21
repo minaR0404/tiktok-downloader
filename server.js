@@ -1,0 +1,175 @@
+const express = require("express");
+const path = require("path");
+const fs = require("fs");
+const rateLimit = require("express-rate-limit");
+const YTDlpWrap = require("yt-dlp-wrap").default;
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// yt-dlpバイナリのパス
+const YT_DLP_PATH = process.env.YT_DLP_PATH || path.join(__dirname, "bin", "yt-dlp.exe");
+let ytDlp;
+
+// プロキシ信頼（ALB/Nginx背後で動作する場合）
+app.set("trust proxy", process.env.TRUST_PROXY === "true" ? 1 : false);
+
+// セキュリティヘッダー
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  next();
+});
+
+// ミドルウェア
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
+// ヘルスチェック
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+// レートリミット（1分あたり15リクエスト）
+const limiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_MAX || "15", 10),
+  message: { error: "リクエストが多すぎます。しばらく待ってから再試行してください。" },
+});
+app.use("/api/", limiter);
+
+// ダウンロードフォルダ
+const DOWNLOADS_DIR = path.join(__dirname, "downloads");
+if (!fs.existsSync(DOWNLOADS_DIR)) {
+  fs.mkdirSync(DOWNLOADS_DIR, { recursive: true });
+}
+
+// TikTok URLバリデーション
+function isValidTikTokUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.hostname === "www.tiktok.com" ||
+      parsed.hostname === "tiktok.com" ||
+      parsed.hostname === "vm.tiktok.com" ||
+      parsed.hostname === "vt.tiktok.com"
+    );
+  } catch {
+    return false;
+  }
+}
+
+// POST /api/info — 動画情報取得
+app.post("/api/info", async (req, res) => {
+  const { url } = req.body;
+
+  if (!url || !isValidTikTokUrl(url)) {
+    return res.status(400).json({ error: "有効なTikTok URLを入力してください。" });
+  }
+
+  try {
+    const stdout = await ytDlp.execPromise(["--dump-json", "--no-warnings", url]);
+    const info = JSON.parse(stdout);
+
+    res.json({
+      title: info.title || info.description || "無題",
+      author: info.uploader || info.creator || "不明",
+      thumbnail: info.thumbnail || null,
+      duration: info.duration || 0,
+      description: info.description || "",
+      like_count: info.like_count || 0,
+      view_count: info.view_count || 0,
+    });
+  } catch (err) {
+    console.error("Info error:", err.message);
+    res.status(500).json({ error: "動画情報の取得に失敗しました。URLを確認してください。" });
+  }
+});
+
+// POST /api/download — 動画ダウンロード
+app.post("/api/download", async (req, res) => {
+  const { url } = req.body;
+
+  if (!url || !isValidTikTokUrl(url)) {
+    return res.status(400).json({ error: "有効なTikTok URLを入力してください。" });
+  }
+
+  const filename = `tiktok_${Date.now()}.mp4`;
+  const filepath = path.join(DOWNLOADS_DIR, filename);
+
+  try {
+    await ytDlp.execPromise([
+      "-f", "best[ext=mp4]/best",
+      "--merge-output-format", "mp4",
+      "-o", filepath,
+      "--no-warnings",
+      url,
+    ]);
+
+    if (!fs.existsSync(filepath)) {
+      return res.status(500).json({ error: "ダウンロードに失敗しました。" });
+    }
+
+    res.download(filepath, filename, (err) => {
+      fs.unlink(filepath, () => {});
+      if (err && !res.headersSent) {
+        res.status(500).json({ error: "ファイルの送信に失敗しました。" });
+      }
+    });
+  } catch (err) {
+    console.error("Download error:", err.message);
+    fs.unlink(filepath, () => {});
+    res.status(500).json({ error: "動画のダウンロードに失敗しました。" });
+  }
+});
+
+// 古い一時ファイルを5分ごとにクリーンアップ
+const CLEANUP_INTERVAL = parseInt(process.env.CLEANUP_INTERVAL_MS || String(5 * 60 * 1000), 10);
+setInterval(() => {
+  const now = Date.now();
+  fs.readdir(DOWNLOADS_DIR, (err, files) => {
+    if (err) return;
+    for (const file of files) {
+      const fp = path.join(DOWNLOADS_DIR, file);
+      fs.stat(fp, (statErr, stats) => {
+        if (statErr) return;
+        if (now - stats.mtimeMs > CLEANUP_INTERVAL) {
+          fs.unlink(fp, () => {});
+        }
+      });
+    }
+  });
+}, CLEANUP_INTERVAL);
+
+// yt-dlpバイナリのセットアップとサーバー起動
+async function start() {
+  // binフォルダ作成
+  const binDir = path.join(__dirname, "bin");
+  if (!fs.existsSync(binDir)) {
+    fs.mkdirSync(binDir, { recursive: true });
+  }
+
+  // yt-dlpバイナリがなければダウンロード
+  if (!fs.existsSync(YT_DLP_PATH)) {
+    console.log("yt-dlpをダウンロード中...");
+    await YTDlpWrap.downloadFromGithub(YT_DLP_PATH);
+    console.log("yt-dlpのダウンロード完了");
+  }
+
+  ytDlp = new YTDlpWrap(YT_DLP_PATH);
+
+  // バージョン確認
+  const version = await ytDlp.execPromise(["--version"]);
+  console.log(`yt-dlp version: ${version.trim()}`);
+
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`サーバー起動: http://0.0.0.0:${PORT}`);
+  });
+}
+
+start().catch((err) => {
+  console.error("起動エラー:", err.message);
+  process.exit(1);
+});

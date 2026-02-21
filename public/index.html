@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TikTok動画ダウンローダー</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>TikTok Downloader</h1>
+      <p class="subtitle">TikTokの動画URLを貼り付けて保存</p>
+    </header>
+
+    <div class="input-section">
+      <div class="input-wrapper">
+        <input
+          type="text"
+          id="url-input"
+          placeholder="https://www.tiktok.com/@user/video/..."
+          autocomplete="off"
+        >
+        <button id="fetch-btn">情報を取得</button>
+      </div>
+      <p id="error-msg" class="error hidden"></p>
+    </div>
+
+    <div id="loading" class="loading hidden">
+      <div class="spinner"></div>
+      <p>動画情報を取得中...</p>
+    </div>
+
+    <div id="result" class="result-card hidden">
+      <div class="result-content">
+        <div class="thumbnail-wrapper">
+          <img id="thumbnail" src="" alt="サムネイル">
+        </div>
+        <div class="info">
+          <h2 id="video-title"></h2>
+          <p class="author">@<span id="video-author"></span></p>
+          <div class="meta">
+            <span id="video-duration" class="meta-item"></span>
+            <span id="video-views" class="meta-item"></span>
+            <span id="video-likes" class="meta-item"></span>
+          </div>
+          <p id="video-desc" class="description"></p>
+        </div>
+      </div>
+      <button id="download-btn" class="download-btn">ダウンロード</button>
+      <div id="download-loading" class="loading hidden">
+        <div class="spinner"></div>
+        <p>ダウンロード中...</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
