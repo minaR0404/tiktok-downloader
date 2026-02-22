@@ -13,6 +13,9 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 echo "=== アプリをクローン&ビルド ==="
 cd ~
+if [ -d tiktok-downloader ]; then
+  rm -rf tiktok-downloader
+fi
 git clone https://github.com/minaR0404/tiktok-downloader.git
 cd tiktok-downloader
 
