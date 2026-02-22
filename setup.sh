@@ -17,7 +17,7 @@ git clone https://github.com/minaR0404/tiktok-downloader.git
 cd tiktok-downloader
 
 # newgrpでdockerグループを即時反映してビルド実行
-sudo docker compose up -d --build
+sudo docker-compose up -d --build
 
 echo ""
 echo "=== デプロイ完了 ==="
