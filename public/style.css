@@ -38,6 +38,35 @@ header h1 {
   font-size: 0.95rem;
 }
 
+/* 対応プラットフォームバッジ */
+.supported-platforms {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.platform-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  color: #fff;
+  background: #333;
+}
+
+.platform-badge.tiktok {
+  background: #fe2c55;
+}
+
+.platform-badge.twitter {
+  background: #1d9bf0;
+}
+
+.platform-badge.instagram {
+  background: #e4405f;
+}
+
 /* 入力セクション */
 .input-section {
   margin-bottom: 24px;
@@ -54,7 +83,7 @@ header h1 {
 }
 
 .input-wrapper:focus-within {
-  border-color: #fe2c55;
+  border-color: #7c5cfc;
 }
 
 #url-input {
@@ -72,7 +101,7 @@ header h1 {
 }
 
 #fetch-btn {
-  background: #fe2c55;
+  background: #7c5cfc;
   color: #fff;
   border: none;
   padding: 12px 24px;
@@ -85,7 +114,7 @@ header h1 {
 }
 
 #fetch-btn:hover {
-  background: #e0284d;
+  background: #6a4de0;
 }
 
 #fetch-btn:disabled {
@@ -115,7 +144,7 @@ header h1 {
   width: 20px;
   height: 20px;
   border: 2px solid #333;
-  border-top-color: #fe2c55;
+  border-top-color: #7c5cfc;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
@@ -138,10 +167,14 @@ header h1 {
   to { opacity: 1; transform: translateY(0); }
 }
 
+.result-header {
+  padding: 16px 20px 0;
+}
+
 .result-content {
   display: flex;
   gap: 20px;
-  padding: 20px;
+  padding: 16px 20px 20px;
 }
 
 .thumbnail-wrapper {
@@ -212,7 +245,7 @@ header h1 {
   width: calc(100% - 40px);
   margin: 0 20px 20px;
   padding: 14px;
-  background: #fe2c55;
+  background: #7c5cfc;
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -223,7 +256,7 @@ header h1 {
 }
 
 .download-btn:hover {
-  background: #e0284d;
+  background: #6a4de0;
 }
 
 .download-btn:disabled {

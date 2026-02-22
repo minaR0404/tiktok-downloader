@@ -3,14 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TikTok動画ダウンローダー</title>
+  <title>SNS動画ダウンローダー</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>TikTok Downloader</h1>
-      <p class="subtitle">TikTokの動画URLを貼り付けて保存</p>
+      <h1>SNS Downloader</h1>
+      <p class="subtitle">SNSの動画URLを貼り付けて保存</p>
+      <div class="supported-platforms">
+        <span class="platform-badge tiktok">TikTok</span>
+        <span class="platform-badge twitter">Twitter / X</span>
+        <span class="platform-badge instagram">Instagram</span>
+      </div>
     </header>
 
     <div class="input-section">
@@ -18,7 +23,7 @@
         <input
           type="text"
           id="url-input"
-          placeholder="https://www.tiktok.com/@user/video/..."
+          placeholder="動画のURLを貼り付け..."
           autocomplete="off"
         >
         <button id="fetch-btn">情報を取得</button>
@@ -32,6 +37,9 @@
     </div>
 
     <div id="result" class="result-card hidden">
+      <div class="result-header">
+        <span id="platform-label" class="platform-badge"></span>
+      </div>
       <div class="result-content">
         <div class="thumbnail-wrapper">
           <img id="thumbnail" src="" alt="サムネイル">

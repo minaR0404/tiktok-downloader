@@ -46,27 +46,44 @@ if (!fs.existsSync(DOWNLOADS_DIR)) {
   fs.mkdirSync(DOWNLOADS_DIR, { recursive: true });
 }
 
-// TikTok URLバリデーション
-function isValidTikTokUrl(url) {
+// 対応SNSプラットフォーム
+const SUPPORTED_PLATFORMS = [
+  {
+    name: "TikTok",
+    hostnames: ["www.tiktok.com", "tiktok.com", "vm.tiktok.com", "vt.tiktok.com"],
+  },
+  {
+    name: "Twitter",
+    hostnames: ["twitter.com", "www.twitter.com", "x.com", "www.x.com", "mobile.twitter.com"],
+  },
+  {
+    name: "Instagram",
+    hostnames: ["www.instagram.com", "instagram.com"],
+  },
+];
+
+// URLバリデーション（対応SNSかチェック）
+function detectPlatform(url) {
   try {
     const parsed = new URL(url);
-    return (
-      parsed.hostname === "www.tiktok.com" ||
-      parsed.hostname === "tiktok.com" ||
-      parsed.hostname === "vm.tiktok.com" ||
-      parsed.hostname === "vt.tiktok.com"
-    );
+    for (const platform of SUPPORTED_PLATFORMS) {
+      if (platform.hostnames.includes(parsed.hostname)) {
+        return platform.name;
+      }
+    }
+    return null;
   } catch {
-    return false;
+    return null;
   }
 }
 
 // POST /api/info — 動画情報取得
 app.post("/api/info", async (req, res) => {
   const { url } = req.body;
+  const platform = url ? detectPlatform(url) : null;
 
-  if (!url || !isValidTikTokUrl(url)) {
-    return res.status(400).json({ error: "有効なTikTok URLを入力してください。" });
+  if (!url || !platform) {
+    return res.status(400).json({ error: "対応していないURLです。TikTok・Twitter・InstagramのURLを入力してください。" });
   }
 
   try {
@@ -74,6 +91,7 @@ app.post("/api/info", async (req, res) => {
     const info = JSON.parse(stdout);
 
     res.json({
+      platform,
       title: info.title || info.description || "無題",
       author: info.uploader || info.creator || "不明",
       thumbnail: info.thumbnail || null,
@@ -91,12 +109,13 @@ app.post("/api/info", async (req, res) => {
 // POST /api/download — 動画ダウンロード
 app.post("/api/download", async (req, res) => {
   const { url } = req.body;
+  const platform = url ? detectPlatform(url) : null;
 
-  if (!url || !isValidTikTokUrl(url)) {
-    return res.status(400).json({ error: "有効なTikTok URLを入力してください。" });
+  if (!url || !platform) {
+    return res.status(400).json({ error: "対応していないURLです。TikTok・Twitter・InstagramのURLを入力してください。" });
   }
 
-  const filename = `tiktok_${Date.now()}.mp4`;
+  const filename = `${platform.toLowerCase()}_${Date.now()}.mp4`;
   const filepath = path.join(DOWNLOADS_DIR, filename);
 
   try {

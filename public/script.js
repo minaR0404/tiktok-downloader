@@ -5,8 +5,10 @@ const loading = document.getElementById("loading");
 const result = document.getElementById("result");
 const downloadBtn = document.getElementById("download-btn");
 const downloadLoading = document.getElementById("download-loading");
+const platformLabel = document.getElementById("platform-label");
 
 let currentUrl = "";
+let currentPlatform = "";
 
 function showError(msg) {
   errorMsg.textContent = msg;
@@ -29,6 +31,12 @@ function formatCount(n) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
   return n.toString();
+}
+
+// プラットフォームに応じたバッジ表示
+function setPlatformBadge(platform) {
+  platformLabel.textContent = platform;
+  platformLabel.className = "platform-badge " + platform.toLowerCase();
 }
 
 // 情報取得
@@ -60,7 +68,9 @@ fetchBtn.addEventListener("click", async () => {
     }
 
     currentUrl = url;
+    currentPlatform = data.platform || "";
 
+    setPlatformBadge(currentPlatform);
     document.getElementById("thumbnail").src = data.thumbnail || "";
     document.getElementById("video-title").textContent = data.title;
     document.getElementById("video-author").textContent = data.author;
@@ -112,7 +122,7 @@ downloadBtn.addEventListener("click", async () => {
     const blob = await res.blob();
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `tiktok_${Date.now()}.mp4`;
+    a.download = `${currentPlatform.toLowerCase() || "video"}_${Date.now()}.mp4`;
     document.body.appendChild(a);
     a.click();
     a.remove();

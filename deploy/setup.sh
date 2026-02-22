@@ -19,15 +19,25 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 echo "=== アプリをクローン&ビルド ==="
 cd ~
-if [ -d tiktok-downloader ]; then
-  rm -rf tiktok-downloader
+if [ -d sns-downloader ]; then
+  rm -rf sns-downloader
 fi
-git clone https://github.com/minaR0404/tiktok-downloader.git
-cd tiktok-downloader
+git clone https://github.com/minaR0404/sns-downloader.git
+cd sns-downloader
 
-# newgrpでdockerグループを即時反映してビルド実行
+# アプリをビルド&起動
 sudo docker-compose up -d --build
+
+PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
 
 echo ""
 echo "=== デプロイ完了 ==="
-echo "http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4) でアクセスできます"
+echo ""
+echo "【次のステップ: HTTPS設定】"
+echo "1. ドメインのDNS設定でAレコードに $PUBLIC_IP を登録"
+echo "2. EC2セキュリティグループでポート443を開放"
+echo "3. 以下のコマンドでSSL証明書を取得:"
+echo "   cd ~/sns-downloader"
+echo "   bash deploy/init-letsencrypt.sh <ドメイン名> <メールアドレス>"
+echo ""
+echo "HTTPアクセス: http://$PUBLIC_IP"
