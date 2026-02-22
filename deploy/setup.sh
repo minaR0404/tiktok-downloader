@@ -3,7 +3,7 @@ set -e
 
 echo "=== Dockerインストール ==="
 sudo dnf update -y
-sudo dnf install -y docker git
+sudo dnf install -y docker git docker-buildx-plugin
 sudo systemctl enable --now docker
 sudo usermod -aG docker $USER
 
