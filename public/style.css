@@ -74,21 +74,28 @@ header h1 {
   background: #141416;
   border: 1px solid #1e1e22;
   border-radius: 10px;
-  color: #999;
+  color: #555;
   font-size: 0.8rem;
   font-weight: 500;
-  transition: border-color 0.2s, color 0.2s;
-}
-
-.platform-card:hover {
-  border-color: #333;
-  color: #ccc;
+  transition: border-color 0.3s, color 0.3s, background 0.3s;
 }
 
 .platform-card svg {
   width: 18px;
   height: 18px;
-  opacity: 0.7;
+  opacity: 0.4;
+  transition: opacity 0.3s;
+}
+
+/* ハイライト状態 */
+.platform-card.active {
+  border-color: #7c5cfc;
+  color: #fff;
+  background: #1a1a2e;
+}
+
+.platform-card.active svg {
+  opacity: 1;
 }
 
 /* プラットフォームバッジ（結果カード用） */
@@ -334,62 +341,59 @@ header h1 {
   letter-spacing: -0.01em;
 }
 
-/* 使い方ステップ */
+/* 使い方ステップ - カードグリッド */
 .how-to {
   margin-top: 48px;
   margin-bottom: 36px;
 }
 
-.steps {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+.step-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
 }
 
-.step {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 16px;
+.step-card {
   background: #141416;
   border: 1px solid #1e1e22;
-  border-radius: 10px;
+  border-radius: 12px;
+  padding: 20px 16px;
+  transition: border-color 0.2s, transform 0.2s;
 }
 
-.step-number {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  background: #7c5cfc;
-  color: #fff;
-  font-family: "Space Grotesk", sans-serif;
-  font-size: 0.8rem;
-  font-weight: 700;
-  border-radius: 6px;
+.step-card:hover {
+  border-color: #2a2a30;
+  transform: translateY(-2px);
+}
+
+.step-card-visual {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
-.step-content h4 {
+.step-badge {
   font-family: "Space Grotesk", sans-serif;
-  font-size: 0.85rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #7c5cfc;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.step-card h4 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.9rem;
   font-weight: 600;
   color: #e0e0e0;
-  margin-bottom: 2px;
+  margin-bottom: 6px;
 }
 
-.step-content p {
-  font-size: 0.8rem;
+.step-card p {
+  font-size: 0.78rem;
   color: #666;
-  line-height: 1.4;
-}
-
-.step-connector {
-  width: 2px;
-  height: 12px;
-  background: #1e1e22;
-  margin-left: 29px;
+  line-height: 1.5;
 }
 
 /* 注意事項 */
@@ -516,5 +520,26 @@ header h1 {
   .thumbnail-wrapper {
     width: 100%;
     height: 220px;
+  }
+
+  .step-cards {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .step-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+  }
+
+  .step-card-visual {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .step-card h4 {
+    margin-bottom: 2px;
   }
 }

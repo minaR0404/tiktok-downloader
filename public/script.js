@@ -10,6 +10,35 @@ const platformLabel = document.getElementById("platform-label");
 let currentUrl = "";
 let currentPlatform = "";
 
+// プラットフォーム自動検出用
+const PLATFORM_HOSTS = {
+  tiktok: ["tiktok.com", "vm.tiktok.com", "vt.tiktok.com"],
+  twitter: ["twitter.com", "x.com"],
+  instagram: ["instagram.com"],
+};
+
+function detectPlatformFromUrl(url) {
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./, "").replace(/^mobile\./, "");
+    for (const [platform, hosts] of Object.entries(PLATFORM_HOSTS)) {
+      if (hosts.includes(hostname)) return platform;
+    }
+  } catch {}
+  return null;
+}
+
+function highlightPlatform(platform) {
+  document.querySelectorAll(".platform-card").forEach((card) => {
+    card.classList.toggle("active", card.dataset.platform === platform);
+  });
+}
+
+// URL入力時にリアルタイム検出
+urlInput.addEventListener("input", () => {
+  const detected = detectPlatformFromUrl(urlInput.value.trim());
+  highlightPlatform(detected);
+});
+
 function showError(msg) {
   errorMsg.textContent = msg;
   errorMsg.classList.remove("hidden");
@@ -71,7 +100,10 @@ fetchBtn.addEventListener("click", async () => {
     currentPlatform = data.platform || "";
 
     setPlatformBadge(currentPlatform);
-    document.getElementById("thumbnail").src = data.thumbnail || "";
+    highlightPlatform(currentPlatform.toLowerCase());
+    document.getElementById("thumbnail").src = data.thumbnail
+      ? `/api/thumbnail?url=${encodeURIComponent(data.thumbnail)}`
+      : "";
     document.getElementById("video-title").textContent = data.title;
     document.getElementById("video-author").textContent = data.author;
     document.getElementById("video-duration").textContent = data.duration

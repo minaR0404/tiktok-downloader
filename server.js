@@ -106,6 +106,26 @@ app.post("/api/info", async (req, res) => {
   }
 });
 
+// GET /api/thumbnail — サムネイル画像プロキシ（Instagram等のCORS対策）
+app.get("/api/thumbnail", async (req, res) => {
+  const imageUrl = req.query.url;
+  if (!imageUrl) return res.status(400).end();
+
+  try {
+    const response = await fetch(imageUrl, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
+    if (!response.ok) return res.status(response.status).end();
+
+    res.setHeader("Content-Type", response.headers.get("content-type") || "image/jpeg");
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    const buffer = Buffer.from(await response.arrayBuffer());
+    res.send(buffer);
+  } catch {
+    res.status(502).end();
+  }
+});
+
 // POST /api/download — 動画ダウンロード
 app.post("/api/download", async (req, res) => {
   const { url } = req.body;
@@ -122,6 +142,7 @@ app.post("/api/download", async (req, res) => {
     await ytDlp.execPromise([
       "-f", "best[ext=mp4]/best",
       "--merge-output-format", "mp4",
+      "--max-filesize", "100M",
       "-o", filepath,
       "--no-warnings",
       url,
