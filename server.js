@@ -135,7 +135,14 @@ app.post("/api/download", async (req, res) => {
     return res.status(400).json({ error: "対応していないURLです。TikTok・Twitter・InstagramのURLを入力してください。" });
   }
 
-  const filename = `${platform.toLowerCase()}_${Date.now()}.mp4`;
+  const now = new Date();
+  const timestamp = now.getFullYear().toString().slice(2)
+    + String(now.getMonth() + 1).padStart(2, "0")
+    + String(now.getDate()).padStart(2, "0")
+    + String(now.getHours()).padStart(2, "0")
+    + String(now.getMinutes()).padStart(2, "0")
+    + String(now.getSeconds()).padStart(2, "0");
+  const filename = `sns-downloader-${timestamp}.mp4`;
   const filepath = path.join(DOWNLOADS_DIR, filename);
 
   try {
